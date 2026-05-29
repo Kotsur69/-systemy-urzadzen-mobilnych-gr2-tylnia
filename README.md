@@ -37,7 +37,7 @@ Dane przechowywane są w AsyncStorage (localStorage przeglądarki lub pamięć u
 
 ```bash
 # 1. Przejdź do folderu projektu
-cd gr4-course-hub
+cd -systemy-urzadzen-mobilnych-gr2-tylnia-main
 
 # 2. Zainstaluj zależności (raz)
 npm install
