@@ -6,7 +6,11 @@ import ViewTitle from "@/src/components/ViewTitle";
 import { localAuth } from "@/src/services/localAuth";
 import { localDb, type StoredTask } from "@/src/services/localDb";
 import { getUpcomingEvents, type SchoolEvent } from "@/src/services/eventsApi";
+import { notifyStudentSummary } from "@/src/services/notificationsApi";
 import { useAppTheme } from "@/src/context/ThemeContext";
+
+// Powiadomienie zbiorcze wysyłamy raz na sesję, aby nie spamować przy każdym wejściu.
+let summarySentThisSession = false;
 
 type Item =
   | { kind: "task"; task: StoredTask }
@@ -46,6 +50,17 @@ export default function NotificationsScreen() {
     const evItems: Item[] = events.map((e) => ({ kind: "event" as const, event: e }));
     setItems([...pending, ...evItems]);
     setLoading(false);
+
+    // Powiadomienie systemowe (web): zbiorcze podsumowanie raz na sesję.
+    if (!summarySentThisSession) {
+      summarySentThisSession = true;
+      const nextEvent = events[0];
+      notifyStudentSummary({
+        pendingTasks: pending.length,
+        nextEventTitle: nextEvent?.title,
+        nextEventDays: nextEvent ? daysUntil(nextEvent.date) : undefined,
+      });
+    }
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));

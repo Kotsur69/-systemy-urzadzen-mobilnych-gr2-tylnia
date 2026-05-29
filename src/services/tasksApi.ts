@@ -61,6 +61,40 @@ export const createTask = async (task: {
   });
 };
 
+/**
+ * Tworzy to samo zadanie dla wielu uczniów naraz (np. dla całej grupy).
+ * Każdy uczeń otrzymuje osobny, niezależny wpis zadania.
+ */
+export const createTaskForStudents = async (task: {
+  title: string;
+  taskContent: string;
+  teacherId: string;
+  userIds: string[];
+}): Promise<number> => {
+  const title = task.title.trim();
+  const taskContent = task.taskContent.trim();
+  const now = Date.now();
+  let created = 0;
+
+  for (const userId of task.userIds) {
+    await localDb.tasks.add({
+      id: `task-${now}-${userId}`,
+      title,
+      taskContent,
+      userId,
+      teacherId: task.teacherId,
+      rate: null,
+      comment: "",
+      commited: false,
+      answerContent: "",
+      date: new Date().toISOString(),
+    });
+    created++;
+  }
+
+  return created;
+};
+
 export async function getStudents(): Promise<Student[]> {
   const users = await localDb.users.getAll();
   return users

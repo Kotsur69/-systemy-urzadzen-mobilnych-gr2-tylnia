@@ -5,10 +5,10 @@ import NavigationItem, {
 } from "@/src/components/Navigation/NavigationItem";
 import NavigationContainer from "@/src/components/Navigation/NavigationMenu";
 
-export default function Dashboard() {
+export default function ParentDashboard() {
   return (
     <SafeAreaContainer>
-      <ViewTitle>Dashboard</ViewTitle>
+      <ViewTitle>Panel rodzica</ViewTitle>
       <NavigationContainer>
         {navigationItems.map(
           ({ label, desc, iconName, iconBackgroundColor, route }) => (
@@ -29,45 +29,24 @@ export default function Dashboard() {
 
 const navigationItems: NavigationItemType[] = [
   {
-    label: "Lista zadań",
-    desc: "Przeglądaj i oceniaj zadania",
-    iconName: "task",
-    iconBackgroundColor: "#42A5F5",
-    route: "/teacher/tasks",
-  },
-  {
-    label: "Statystyki",
-    desc: "Wyniki i oceny uczniów",
-    iconName: "bar-chart",
+    label: "Oceny dziecka",
+    desc: "Podgląd ocen i zadań dziecka",
+    iconName: "grade",
     iconBackgroundColor: "#66BB6A",
-    route: "/teacher/statistics",
+    route: "/parent/grades",
   },
   {
-    label: "Frekwencja",
-    desc: "Zaznaczaj obecności uczniów",
-    iconName: "fact-check",
+    label: "Frekwencja dziecka",
+    desc: "Obecności i nieobecności",
+    iconName: "check-circle",
     iconBackgroundColor: "#AB47BC",
-    route: "/teacher/attendance",
-  },
-  {
-    label: "Terminarz",
-    desc: "Dodawaj wydarzenia widoczne dla uczniów",
-    iconName: "event",
-    iconBackgroundColor: "#26A69A",
-    route: "/teacher/events",
-  },
-  {
-    label: "Wiadomości",
-    desc: "Czat z uczniami i nauczycielami",
-    iconName: "chat",
-    iconBackgroundColor: "#26C6DA",
-    route: "/chat",
+    route: "/parent/presence",
   },
   {
     label: "Profil",
     desc: "Zarządzaj swoim profilem",
     iconName: "person",
     iconBackgroundColor: "#FFA726",
-    route: "/teacher/profile",
+    route: "/parent/profile",
   },
 ];

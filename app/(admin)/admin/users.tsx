@@ -150,6 +150,8 @@ const UserManagement = () => {
                   ? "#E91E63"
                   : item.role === "teacher"
                   ? "#FF9800"
+                  : item.role === "parent"
+                  ? "#26A69A"
                   : "#4CAF50",
             },
           ]}
@@ -160,6 +162,11 @@ const UserManagement = () => {
       <Text style={styles.userEmail}>{item.email}</Text>
       {item.role === "teacher" && item.specialty ? (
         <Text style={styles.specialtyText}>📚 {item.specialty}</Text>
+      ) : null}
+      {item.role === "parent" ? (
+        <Text style={styles.specialtyText}>
+          👪 Dzieci: {item.childIds?.length ?? 0}
+        </Text>
       ) : null}
       <Text
         style={[
@@ -197,7 +204,7 @@ const UserManagement = () => {
           onChangeText={setSearchText}
         />
         <View style={styles.chipsRow}>
-          {(["all", "student", "teacher", "admin"] as const).map((role) => (
+          {(["all", "student", "teacher", "admin", "parent"] as const).map((role) => (
             <TouchableOpacity
               key={role}
               style={[styles.chip, roleFilter === role && styles.chipActive]}
@@ -303,7 +310,7 @@ const UserManagement = () => {
 
               <Text style={styles.label}>Rola</Text>
               <View style={styles.roleSelectContainer}>
-                {(["student", "teacher", "admin"] as UserRole[]).map((r) => (
+                {(["student", "teacher", "admin", "parent"] as UserRole[]).map((r) => (
                   <TouchableOpacity
                     key={r}
                     style={[
@@ -333,6 +340,48 @@ const UserManagement = () => {
                     onChangeText={(t) => setFormData({ ...formData, specialty: t })}
                     placeholder="np. Matematyka, Informatyka, Historia..."
                   />
+                </>
+              )}
+
+              {formData.role === "parent" && (
+                <>
+                  <Text style={styles.label}>Dzieci (uczniowie)</Text>
+                  {users.filter((u) => u.role === "student").length === 0 ? (
+                    <Text style={styles.childHint}>Brak uczniów do przypisania.</Text>
+                  ) : (
+                    users
+                      .filter((u) => u.role === "student")
+                      .map((s) => {
+                        const checked = (formData.childIds ?? []).includes(s.uid);
+                        return (
+                          <TouchableOpacity
+                            key={s.uid}
+                            style={styles.childRow}
+                            onPress={() => {
+                              const current = formData.childIds ?? [];
+                              const next = checked
+                                ? current.filter((id) => id !== s.uid)
+                                : [...current, s.uid];
+                              setFormData({ ...formData, childIds: next });
+                            }}
+                          >
+                            <View
+                              style={[
+                                styles.childCheckbox,
+                                checked && styles.childCheckboxChecked,
+                              ]}
+                            >
+                              {checked && (
+                                <MaterialIcons name="check" size={16} color="#FFF" />
+                              )}
+                            </View>
+                            <Text style={styles.childLabel}>
+                              {s.firstName} {s.surname}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                  )}
                 </>
               )}
 
@@ -453,6 +502,24 @@ const styles = StyleSheet.create({
   },
   statusText: { fontSize: 13, fontWeight: "600", marginTop: 5 },
   specialtyText: { fontSize: 13, color: "#5C6BC0", fontWeight: "600", marginBottom: 4 },
+  childHint: { fontSize: 13, color: "#9E9E9E", marginTop: 4 },
+  childRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    gap: 12,
+  },
+  childCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "#C5CAE9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  childCheckboxChecked: { backgroundColor: "#5C6BC0", borderColor: "#5C6BC0" },
+  childLabel: { fontSize: 16, color: "#333" },
 
   // MODAL
   modalOverlay: {

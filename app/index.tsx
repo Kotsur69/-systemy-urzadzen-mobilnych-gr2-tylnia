@@ -11,6 +11,7 @@ export default function Index() {
     student: "/(student)/student",
     teacher: "/(teacher)/teacher",
     admin: "/(admin)/admin",
+    parent: "/(parent)/parent",
   };
 
   const route = (user.role ? roleRoutes[user.role] : undefined) ?? "/(guest)/guest";

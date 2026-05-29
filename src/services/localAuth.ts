@@ -22,7 +22,7 @@ function toUserData(stored: StoredUser): UserData {
 
 export async function initAuth(): Promise<void> {
   // Wyczyść stare wersje bazy danych
-  for (const oldKey of ["@db:initialized:v1", "@db:initialized:v2", "@db:initialized:v3"]) {
+  for (const oldKey of ["@db:initialized:v1", "@db:initialized:v2", "@db:initialized:v3", "@db:initialized:v4"]) {
     const old = await AsyncStorage.getItem(oldKey);
     if (old) {
       await AsyncStorage.multiRemove([

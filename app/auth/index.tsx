@@ -92,6 +92,7 @@ export default function LoginScreen() {
         <Text style={styles.hintLine}>student@school.pl / student123</Text>
         <Text style={styles.hintLine}>teacher@school.pl / teacher123</Text>
         <Text style={styles.hintLine}>admin@school.pl / admin123</Text>
+        <Text style={styles.hintLine}>parent@school.pl / parent123</Text>
       </View>
 
       <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>

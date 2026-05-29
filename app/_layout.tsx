@@ -70,6 +70,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(student)" />
         <Stack.Screen name="(teacher)" />
         <Stack.Screen name="(admin)" />
+        <Stack.Screen name="(parent)" />
       </Stack>
     </NavigationThemeWrapper>
   );

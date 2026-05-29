@@ -1,1 +1,1 @@
-export type UserRole = "student" | "teacher" | "admin" | "guest" | null;
+export type UserRole = "student" | "teacher" | "admin" | "parent" | "guest" | null;

@@ -21,6 +21,7 @@ import {
   getStudentByUid,
   Student,
 } from "@/src/services/tasksApi";
+import { notify } from "@/src/services/notificationsApi";
 
 export default function TeacherTask() {
   const router = useRouter();
@@ -83,6 +84,13 @@ export default function TeacherTask() {
     try {
       await updateTaskGradeAndStatus(task.id, ocenaNum, komentarz, false);
 
+      if (ocenaNum !== null) {
+        notify(
+          "Twoje zadanie zostało ocenione",
+          `"${task.title}" — ocena: ${ocenaNum}/100.`
+        );
+      }
+
       setTask((prevTask) =>
         prevTask
           ? {
@@ -118,6 +126,11 @@ export default function TeacherTask() {
 
     try {
       await updateTaskGradeAndStatus(task.id, ocenaNum, komentarz, true);
+
+      notify(
+        "Twoje zadanie zostało zatwierdzone",
+        `"${task.title}" — ocena: ${ocenaNum}/100.`
+      );
 
       setTask((prevTask) =>
         prevTask

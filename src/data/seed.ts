@@ -13,6 +13,7 @@ export const SEED_USERS: StoredUser[] = [
   { uid: "teacher-1", email: "teacher@school.pl",  password: "teacher123", firstName: "Jan",   surname: "Kowalski",   role: "teacher", active: true, specialty: "Informatyka" },
   { uid: "student-1", email: "student@school.pl",  password: "student123", firstName: "Anna",  surname: "Nowak",      role: "student", active: true },
   { uid: "student-2", email: "student2@school.pl", password: "student123", firstName: "Piotr", surname: "Wiśniewski", role: "student", active: true },
+  { uid: "parent-1",  email: "parent@school.pl",   password: "parent123",  firstName: "Maria", surname: "Nowak",      role: "parent",  active: true, childIds: ["student-1", "student-2"] },
 ];
 
 export const SEED_SUBJECTS: StoredSubject[] = [

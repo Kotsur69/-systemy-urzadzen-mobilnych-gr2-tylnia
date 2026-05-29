@@ -70,7 +70,7 @@ const KEYS = {
   MESSAGES: "@db:messages",
   SCHEDULE: "@db:schedule",
   EVENTS: "@db:events",
-  INITIALIZED: "@db:initialized:v4",
+  INITIALIZED: "@db:initialized:v5",
 };
 
 async function getAll<T>(key: string): Promise<T[]> {
@@ -167,9 +167,26 @@ export const localDb = {
       const all = await getAll<StoredAttendance>(KEYS.ATTENDANCE);
       return all.filter((a) => a.studentId === studentId).sort((a, b) => b.date.localeCompare(a.date));
     },
+    getByDate: async (date: string) => {
+      const all = await getAll<StoredAttendance>(KEYS.ATTENDANCE);
+      return all.filter((a) => a.date === date);
+    },
     add: async (record: StoredAttendance) => {
       const all = await getAll<StoredAttendance>(KEYS.ATTENDANCE);
       await setAll(KEYS.ATTENDANCE, [...all, record]);
+    },
+    // Zapisz obecność dla danego ucznia i dnia — nadpisuje istniejący wpis lub tworzy nowy.
+    upsert: async (record: StoredAttendance) => {
+      const all = await getAll<StoredAttendance>(KEYS.ATTENDANCE);
+      const idx = all.findIndex(
+        (a) => a.studentId === record.studentId && a.date === record.date
+      );
+      if (idx !== -1) {
+        all[idx] = { ...all[idx], present: record.present, teacherId: record.teacherId };
+      } else {
+        all.push(record);
+      }
+      await setAll(KEYS.ATTENDANCE, all);
     },
   },
 

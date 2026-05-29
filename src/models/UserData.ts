@@ -8,4 +8,5 @@ export default interface UserData {
   uid: string;
   active: boolean;
   specialty?: string; // nauczyciel: "Matematyka", "Informatyka", itp.
+  childIds?: string[]; // rodzic: lista uid dzieci (uczniów), które obserwuje
 }

@@ -13,7 +13,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { localAuth } from "@/src/services/localAuth";
-import { createTask, getStudents } from "@/src/services/tasksApi";
+import { createTaskForStudents, getStudents } from "@/src/services/tasksApi";
+import { notify } from "@/src/services/notificationsApi";
 import SafeAreaContainer from "@/src/components/SafeAreaContainer";
 
 interface Student {
@@ -28,7 +29,7 @@ export default function TeacherTaskCreate() {
   const [loadingStudents, setLoadingStudents] = useState(true);
   const [title, setTitle] = useState("");
   const [taskContent, setTaskContent] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [showStudentPicker, setShowStudentPicker] = useState(false);
 
@@ -37,10 +38,26 @@ export default function TeacherTaskCreate() {
   }, []);
 
   const getSelectedStudentName = () => {
-    const student = students.find((s) => s.uid === selectedStudent);
-    return student
-      ? `${student.firstName} ${student.surname}`
-      : "Wybierz ucznia...";
+    if (selectedStudents.length === 0) return "Wybierz uczniów...";
+    if (selectedStudents.length === students.length && students.length > 0)
+      return "Wszyscy uczniowie";
+    if (selectedStudents.length === 1) {
+      const s = students.find((st) => st.uid === selectedStudents[0]);
+      return s ? `${s.firstName} ${s.surname}` : "1 uczeń";
+    }
+    return `Wybrano: ${selectedStudents.length}`;
+  };
+
+  const toggleStudent = (uid: string) => {
+    setSelectedStudents((prev) =>
+      prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedStudents((prev) =>
+      prev.length === students.length ? [] : students.map((s) => s.uid)
+    );
   };
 
   const loadStudents = async () => {
@@ -62,23 +79,32 @@ export default function TeacherTaskCreate() {
       Alert.alert("Błąd", "Podaj treść zadania");
       return;
     }
-    if (!selectedStudent) {
-      Alert.alert("Błąd", "Wybierz ucznia");
+    if (selectedStudents.length === 0) {
+      Alert.alert("Błąd", "Wybierz co najmniej jednego ucznia");
       return;
     }
     setIsSaving(true);
 
     try {
-      await createTask({
+      const count = await createTaskForStudents({
         title: title.trim(),
         taskContent: taskContent.trim(),
-        userId: selectedStudent,
+        userIds: selectedStudents,
         teacherId: localAuth.currentUser?.uid ?? "",
       });
 
-      Alert.alert("Sukces", "Zadanie zostało utworzone", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      notify(
+        "Nowe zadanie domowe",
+        `Dodano zadanie "${title.trim()}" dla ${count} ucznia(ów).`
+      );
+
+      Alert.alert(
+        "Sukces",
+        count === 1
+          ? "Zadanie zostało utworzone"
+          : `Zadanie zostało utworzone dla ${count} uczniów`,
+        [{ text: "OK", onPress: () => router.back() }]
+      );
     } catch (error) {
       console.error(error);
       Alert.alert("Błąd", "Nie udało się utworzyć zadania");
@@ -116,9 +142,9 @@ export default function TeacherTaskCreate() {
             />
           </View>
 
-          {/* Uczeń */}
+          {/* Uczniowie */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Przypisz do ucznia *</Text>
+            <Text style={styles.inputLabel}>Przypisz do uczniów *</Text>
             <TouchableOpacity
               style={styles.dropdownButton}
               onPress={() => setShowStudentPicker(true)}
@@ -126,7 +152,7 @@ export default function TeacherTaskCreate() {
               <Text
                 style={[
                   styles.dropdownButtonText,
-                  !selectedStudent && styles.dropdownPlaceholder,
+                  selectedStudents.length === 0 && styles.dropdownPlaceholder,
                 ]}
               >
                 {getSelectedStudentName()}
@@ -135,7 +161,7 @@ export default function TeacherTaskCreate() {
             </TouchableOpacity>
           </View>
 
-          {/* Modal z listą studentów */}
+          {/* Modal z listą studentów (wielokrotny wybór) */}
           <Modal
             visible={showStudentPicker}
             transparent={true}
@@ -149,42 +175,66 @@ export default function TeacherTaskCreate() {
             >
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Wybierz ucznia</Text>
+                  <Text style={styles.modalTitle}>Wybierz uczniów</Text>
                   <TouchableOpacity onPress={() => setShowStudentPicker(false)}>
                     <Text style={styles.modalClose}>✕</Text>
                   </TouchableOpacity>
                 </View>
 
+                <TouchableOpacity
+                  style={styles.selectAllRow}
+                  onPress={toggleSelectAll}
+                >
+                  <Text style={styles.selectAllText}>
+                    {selectedStudents.length === students.length &&
+                    students.length > 0
+                      ? "Odznacz wszystkich"
+                      : "Zaznacz wszystkich"}
+                  </Text>
+                </TouchableOpacity>
+
                 <FlatList
                   data={students}
                   keyExtractor={(item) => item.uid}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={[
-                        styles.studentItem,
-                        selectedStudent === item.uid &&
-                          styles.studentItemSelected,
-                      ]}
-                      onPress={() => {
-                        setSelectedStudent(item.uid);
-                        setShowStudentPicker(false);
-                      }}
-                    >
-                      <Text
+                  renderItem={({ item }) => {
+                    const checked = selectedStudents.includes(item.uid);
+                    return (
+                      <TouchableOpacity
                         style={[
-                          styles.studentItemText,
-                          selectedStudent === item.uid &&
-                            styles.studentItemTextSelected,
+                          styles.studentItem,
+                          checked && styles.studentItemSelected,
                         ]}
+                        onPress={() => toggleStudent(item.uid)}
                       >
-                        {item.firstName} {item.surname}
-                      </Text>
-                      {selectedStudent === item.uid && (
-                        <Text style={styles.checkmark}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  )}
+                        <Text
+                          style={[
+                            styles.studentItemText,
+                            checked && styles.studentItemTextSelected,
+                          ]}
+                        >
+                          {item.firstName} {item.surname}
+                        </Text>
+                        <View
+                          style={[
+                            styles.checkbox,
+                            checked && styles.checkboxChecked,
+                          ]}
+                        >
+                          {checked && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }}
                 />
+
+                <TouchableOpacity
+                  style={styles.modalDoneButton}
+                  onPress={() => setShowStudentPicker(false)}
+                >
+                  <Text style={styles.modalDoneText}>
+                    Gotowe ({selectedStudents.length})
+                  </Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           </Modal>
@@ -427,8 +477,45 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   checkmark: {
-    fontSize: 20,
+    fontSize: 14,
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "#cbd5e1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxChecked: {
+    backgroundColor: "#3b82f6",
+    borderColor: "#3b82f6",
+  },
+  selectAllRow: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  selectAllText: {
+    fontSize: 15,
     color: "#3b82f6",
+    fontWeight: "600",
+  },
+  modalDoneButton: {
+    backgroundColor: "#3b82f6",
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalDoneText: {
+    color: "#ffffff",
+    fontSize: 16,
     fontWeight: "700",
   },
 });
